@@ -1,0 +1,27 @@
+name: zeta precision regression
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 8 * * 1-5"   # weekday 08:00 UTC daily digest
+
+jobs:
+  ks-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: install deps
+        run: pip install numpy scipy mpmath
+      - name: run unfold + KS
+        run: python zeta_unfold.py | tee result.txt
+      - name: check GUE consistency
+        run: grep -q "GUE-consistent" result.txt
+      - name: upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ks-result
+          path: result.txt
